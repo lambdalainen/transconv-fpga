@@ -29,7 +29,7 @@ bram #(.ADDR_WIDTH(16), .DATA_WIDTH(32)) bram_res
         (.clk(clk), .we(we), .addr_a(addr_c), .addr_b(addr_result), .din_a(c), .dout_a(), .dout_b(result));
 
 sparse_gemm mm_unit
-    (.clk(clk), .reset(1'b0), .m(14'd256), .k(14'd256), .n(14'd256), .start_tick(btn_c_tick),
+    (.clk(clk), .reset(1'b0), .m(14'd9), .k(14'd1), .n(14'd4), .start_tick(btn_c_tick),
      .a(a), .b(b), .a_rd_addr(addr_a), .b_rd_addr(addr_b), .c(c), .c_wr_en(we), .c_wr_addr(addr_c), .done_tick(done_tick));
 
 disp_hex_mux disp_unit (

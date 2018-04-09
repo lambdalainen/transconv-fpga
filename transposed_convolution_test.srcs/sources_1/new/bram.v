@@ -23,7 +23,7 @@ begin
     if (DATA_FILE == "missing")
         $display("### no DATA_FILE specified");
     else
-        $readmemb(DATA_FILE, ram);
+        $readmemh(DATA_FILE, ram);
 end
 
 // body
