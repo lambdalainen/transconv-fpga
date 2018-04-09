@@ -42,8 +42,9 @@ module sparse_gemm
 
 localparam [1:0]
     idle = 2'b00,
-    load = 2'b01,
-    done = 2'b10;
+    loop = 2'b01,
+    macc = 2'b10,
+    done = 2'b11;
 
 reg [1:0] state, state_next;
 reg [ADDR_WIDTH-1:0] a_rd_addr_reg, a_rd_addr_next;
@@ -55,12 +56,17 @@ reg [MKN_WIDTH-1:0] row, row_next;
 reg [MKN_WIDTH-1:0] col, col_next;
 reg [MKN_WIDTH-1:0] i, i_next;
 
+reg [MKN_WIDTH-1:0] x, x_next;
+reg [MKN_WIDTH-1:0] y, y_next;
+
 reg [N_OUT_PLANE_WIDTH-1:0] c_im, c_im_next;
 reg [MISC_WIDTH-1:0] h_offset, h_offset_next;
 reg [MISC_WIDTH-1:0] w_offset, w_offset_next;
 reg [INOUT_WH_WIDTH-1:0] h_col, h_col_next;
 reg [INOUT_WH_WIDTH-1:0] w_col, w_col_next;
-reg [INOUT_WH_WIDTH-1:0] h_im, w_im;
+reg signed [INOUT_WH_WIDTH-1:0] h_im, w_im;
+
+reg inside;
 
 always @(posedge clk, posedge reset)
 begin
@@ -75,6 +81,8 @@ begin
             row <= 0;
             col <= 0;
             i <= 0;
+            x <= 0;
+            y <= 0;
 
             c_im <= 0;
             h_offset <= 0;
@@ -94,6 +102,8 @@ begin
             row <= row_next;
             col <= col_next;
             i <= i_next;
+            x <= x_next;
+            y <= y_next;
 
             c_im <= c_im_next;
             h_offset <= h_offset_next;
@@ -114,6 +124,7 @@ task inner_loop;
             begin
                 w_col_next = w_col + 1;
             end
+        x_next = x + 1;
     end
 endtask
 
@@ -126,10 +137,13 @@ task inner_loop2;
                         w_offset_next = w_offset + 1;
                         h_col_next = 0;
                         w_col_next = 0;
+                        x_next = 0;
+                        y_next = y + 1;
                     end
                 else
                     begin
                         w_col_next = w_col + 1;
+                        x_next = x + 1;
                     end
             end
         else
@@ -149,10 +163,13 @@ task inner_loop3;
                                 w_offset_next = 0;
                                 h_col_next = 0;
                                 w_col_next = 0;
+                                x_next = 0;
+                                y_next = y + 1;
                             end
                         else
                             begin
                                 w_col_next = w_col + 1;
+                                x_next = x + 1;
                             end
                     end
                 else
@@ -174,6 +191,8 @@ begin
     row_next = row;
     col_next = col;
     i_next = i;
+    x_next = x;
+    y_next = y;
 
     c_im_next = c_im;
     h_offset_next = h_offset;
@@ -183,12 +202,13 @@ begin
 
     // direct output signals
     done_tick = 1'b0;
+    inside = 1'b0;
     case (state)
         idle:
             begin
                 if (start_tick)
                     begin
-                        state_next = load;
+                        state_next = loop;
                         a_rd_addr_next = 0;
                         b_rd_addr_next = 0;
                         // No need to set these two
@@ -198,6 +218,8 @@ begin
                         row_next = 0;
                         col_next = 0;
                         i_next = 0;
+                        x_next = 0;
+                        y_next = 0;
 
                         c_im_next = 0;
                         h_offset_next = 0;
@@ -206,7 +228,7 @@ begin
                         w_col_next = 0;
                     end
             end
-        load:
+        loop:
             begin
                 if (c_im == n_output_plane - 1)
                     begin
@@ -223,6 +245,7 @@ begin
                                                 else
                                                     begin
                                                         w_col_next = w_col + 1;
+                                                        x_next = x + 1;
                                                     end
                                             end
                                         else
@@ -249,10 +272,13 @@ begin
                                                         w_offset_next = 0;
                                                         h_col_next = 0;
                                                         w_col_next = 0;
+                                                        x_next = 0;
+                                                        y_next = y + 1;
                                                     end
                                                 else
                                                     begin
                                                         w_col_next = w_col + 1;
+                                                        x_next = x + 1;
                                                     end
                                             end
                                         else
@@ -265,6 +291,21 @@ begin
                             inner_loop3();
                     end
 
+                h_im = h_col * stride_h - pad_h + h_offset * dilation_h;
+                w_im = w_col * stride_w - pad_w + w_offset * dilation_w;
+                if (h_im >= 0 && h_im < output_h && w_im >= 0 && w_im < output_w)
+                    begin
+                        inside = 1'b1;
+                        /*
+                        state_next = macc;
+
+                        a_rd_addr_next = row_next * k + i_next;
+                        b_rd_addr_next = col_next * k + i_next;
+                        */
+                    end
+            end
+        macc:
+            begin
                 if (i == k - 1) // test this case first since when k == 1, i == 0
                     begin
                         if (i == 0)
