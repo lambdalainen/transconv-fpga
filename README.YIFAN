@@ -1,1 +1,14 @@
 Test transposed convolution with sparse GEMM
+
+We start with
+
+A: 1 2 3
+   3 2 1
+   1 2 3
+
+K: 1 2
+   3 4
+
+Flatten both, we have 9x1 * 1x4 = 9x4 matrix. Conceptually we use col2im to cherry pick elements
+to form the 4x4 results of the transposed convolution. In practice, this step is optimized away
+to avoid the need for the extra memory to store the 9x4 matrix.
