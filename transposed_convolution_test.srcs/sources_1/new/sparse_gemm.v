@@ -100,14 +100,12 @@ begin
             end
         load:
             begin
-                if (i == 0)
+                if (i == k - 1) // test this case first since when k == 1, i == 0
                     begin
-                        c_reg_next = a * b;
-                        i_next = i + 1;
-                    end
-                else if (i == k - 1)
-                    begin
-                        c_reg_next = c_reg + a * b;
+                        if (i == 0)
+                            c_reg_next = a * b;
+                        else
+                            c_reg_next = c_reg + a * b;
                         i_next = 0;
                         // the next c_reg value should be written to the next address
                         c_wr_en_next = 1'b1;
@@ -126,6 +124,11 @@ begin
                                 end
                             else
                                 col_next = col + 1;
+                    end
+                else if (i == 0)
+                    begin
+                        c_reg_next = a * b;
+                        i_next = i + 1;
                     end
                 else
                     begin
