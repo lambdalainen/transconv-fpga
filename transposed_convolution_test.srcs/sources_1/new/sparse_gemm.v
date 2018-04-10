@@ -63,6 +63,7 @@ reg [MISC_WIDTH-1:0] w_offset, w_offset_next;
 reg [INOUT_WH_WIDTH-1:0] h_col, h_col_next;
 reg [INOUT_WH_WIDTH-1:0] w_col, w_col_next;
 
+reg [MKN_WIDTH-1:0] i_saved, j_saved;
 reg signed [INOUT_WH_WIDTH-1:0] h_im, w_im;
 reg last;
 
@@ -289,6 +290,9 @@ begin
                         b_rd_addr_next = j;
                         c_rw_addr_next = (c_im * output_h + h_im) * output_w + w_im;
                         sum_next = 0;
+                        // it is important to save i and j's values here use the saved value for macc
+                        i_saved = i;
+                        j_saved = j;
                         l_next = 0;
                     end
                 else if (last)
@@ -308,9 +312,9 @@ begin
                     end
                 else
                     begin
-                        a_rd_addr_next = l_next * m + i;
-                        b_rd_addr_next = l_next * n + j;
                         l_next = l + 1;
+                        a_rd_addr_next = l_next * m + i_saved;
+                        b_rd_addr_next = l_next * n + j_saved;
                     end
             end
         done:
