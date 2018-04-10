@@ -62,7 +62,9 @@ reg [MISC_WIDTH-1:0] h_offset, h_offset_next;
 reg [MISC_WIDTH-1:0] w_offset, w_offset_next;
 reg [INOUT_WH_WIDTH-1:0] h_col, h_col_next;
 reg [INOUT_WH_WIDTH-1:0] w_col, w_col_next;
+
 reg signed [INOUT_WH_WIDTH-1:0] h_im, w_im;
+reg last;
 
 always @(posedge clk, posedge reset)
 begin
@@ -211,6 +213,8 @@ begin
                         w_offset_next = 0;
                         h_col_next = 0;
                         w_col_next = 0;
+
+                        last = 1'b0;
                     end
             end
         loop:
@@ -225,8 +229,7 @@ begin
                                             begin
                                                 if (w_col == input_w - 1)
                                                     begin
-                                                        // TODO: last
-                                                        state_next = done;
+                                                        last = 1'b1;
                                                     end
                                                 else
                                                     begin
@@ -288,13 +291,18 @@ begin
                         sum_next = 0;
                         l_next = 0;
                     end
+                else if (last)
+                    state_next = done;
             end
         macc:
             begin
                 sum_next = sum + a * b;
                 if (l == k - 1)
                     begin
-                        state_next = loop;
+                        if (last)
+                            state_next = done;
+                        else
+                            state_next = loop;
                         c_out = c + sum_next;
                         c_wr_en = 1'b1;
                     end
