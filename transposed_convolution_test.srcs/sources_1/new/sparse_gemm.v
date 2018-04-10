@@ -53,8 +53,8 @@ reg [ADDR_WIDTH-1:0] b_rd_addr_reg, b_rd_addr_next;
 reg [ADDR_WIDTH-1:0] c_rw_addr_reg, c_rw_addr_next;
 reg [ACC_WIDTH-1:0] sum, sum_next;
 
-reg [MKN_WIDTH-1:0] x, x_next;
-reg [MKN_WIDTH-1:0] y, y_next;
+reg [MKN_WIDTH-1:0] i, i_next;
+reg [MKN_WIDTH-1:0] j, j_next;
 reg [MKN_WIDTH-1:0] l, l_next;
 
 reg [N_OUT_PLANE_WIDTH-1:0] c_im, c_im_next;
@@ -74,8 +74,8 @@ begin
             c_rw_addr_reg <= 0;
             sum <= 0;
 
-            x <= 0;
-            y <= 0;
+            i <= 0;
+            j <= 0;
             l <= 0;
 
             c_im <= 0;
@@ -93,8 +93,8 @@ begin
             c_rw_addr_reg <= c_rw_addr_next;
             sum <= sum_next;
 
-            x <= x_next;
-            y <= y_next;
+            i <= i_next;
+            j <= j_next;
             l <= l_next;
 
             c_im <= c_im_next;
@@ -116,7 +116,7 @@ task inner_loop;
             begin
                 w_col_next = w_col + 1;
             end
-        x_next = x + 1;
+        i_next = i + 1;
     end
 endtask
 
@@ -129,13 +129,13 @@ task inner_loop2;
                         w_offset_next = w_offset + 1;
                         h_col_next = 0;
                         w_col_next = 0;
-                        x_next = 0;
-                        y_next = y + 1;
+                        i_next = 0;
+                        j_next = j + 1;
                     end
                 else
                     begin
                         w_col_next = w_col + 1;
-                        x_next = x + 1;
+                        i_next = i + 1;
                     end
             end
         else
@@ -155,13 +155,13 @@ task inner_loop3;
                                 w_offset_next = 0;
                                 h_col_next = 0;
                                 w_col_next = 0;
-                                x_next = 0;
-                                y_next = y + 1;
+                                i_next = 0;
+                                j_next = j + 1;
                             end
                         else
                             begin
                                 w_col_next = w_col + 1;
-                                x_next = x + 1;
+                                i_next = i + 1;
                             end
                     end
                 else
@@ -180,8 +180,8 @@ begin
     c_rw_addr_next = c_rw_addr_reg;
     sum_next = sum;
 
-    x_next = x;
-    y_next = y;
+    i_next = i;
+    j_next = j;
     l_next = l;
 
     c_im_next = c_im;
@@ -202,8 +202,8 @@ begin
                         state_next = loop;
                         // No need to set a_rd_addr_next, ...
 
-                        x_next = 0;
-                        y_next = 0;
+                        i_next = 0;
+                        j_next = 0;
                         l_next = 0;
 
                         c_im_next = 0;
@@ -231,7 +231,7 @@ begin
                                                 else
                                                     begin
                                                         w_col_next = w_col + 1;
-                                                        x_next = x + 1;
+                                                        i_next = i + 1;
                                                     end
                                             end
                                         else
@@ -258,13 +258,13 @@ begin
                                                         w_offset_next = 0;
                                                         h_col_next = 0;
                                                         w_col_next = 0;
-                                                        x_next = 0;
-                                                        y_next = y + 1;
+                                                        i_next = 0;
+                                                        j_next = j + 1;
                                                     end
                                                 else
                                                     begin
                                                         w_col_next = w_col + 1;
-                                                        x_next = x + 1;
+                                                        i_next = i + 1;
                                                     end
                                             end
                                         else
@@ -282,8 +282,8 @@ begin
                 if (h_im >= 0 && h_im < output_h && w_im >= 0 && w_im < output_w)
                     begin
                         state_next = macc;
-                        a_rd_addr_next = x;
-                        b_rd_addr_next = y;
+                        a_rd_addr_next = i;
+                        b_rd_addr_next = j;
                         c_rw_addr_next = (c_im * output_h + h_im) * output_w + w_im;
                         sum_next = 0;
                         l_next = 0;
@@ -300,8 +300,8 @@ begin
                     end
                 else
                     begin
-                        a_rd_addr_next = l_next * m + x;
-                        b_rd_addr_next = l_next * n + y;
+                        a_rd_addr_next = l_next * m + i;
+                        b_rd_addr_next = l_next * n + j;
                         l_next = l + 1;
                     end
             end
