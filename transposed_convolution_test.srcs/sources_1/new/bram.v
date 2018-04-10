@@ -18,10 +18,15 @@ module bram
 reg [DATA_WIDTH-1:0] ram [2**ADDR_WIDTH-1:0];
 reg [ADDR_WIDTH-1:0] addr_a_reg, addr_b_reg;
 
+integer i;
 initial
 begin
     if (DATA_FILE == "missing")
-        $display("### no DATA_FILE specified");
+        begin
+            $display("### no DATA_FILE specified, set BRAM to 0");
+            for (i = 0; i < 2**ADDR_WIDTH; i = i+1)
+                ram[i] = 0;
+        end
     else
         $readmemh(DATA_FILE, ram);
 end
