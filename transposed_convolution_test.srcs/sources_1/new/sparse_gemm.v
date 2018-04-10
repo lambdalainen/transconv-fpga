@@ -32,11 +32,12 @@ module sparse_gemm
     input wire [MISC_WIDTH-1:0] dilation_w,
     input wire [DATA_WIDTH-1:0] a,
     input wire [DATA_WIDTH-1:0] b,
+    input wire [DATA_WIDTH-1:0] c,
     output wire [ADDR_WIDTH-1:0] a_rd_addr,
     output wire [ADDR_WIDTH-1:0] b_rd_addr,
-    output wire [ACC_WIDTH-1:0] c,
-    output wire c_wr_en,
-    output wire [ADDR_WIDTH-1:0] c_wr_addr,
+    output wire [ADDR_WIDTH-1:0] c_rw_addr,
+    output reg [ACC_WIDTH-1:0] c_out,
+    output reg c_wr_en,
     output reg done_tick
 );
 
@@ -49,15 +50,12 @@ localparam [1:0]
 reg [1:0] state, state_next;
 reg [ADDR_WIDTH-1:0] a_rd_addr_reg, a_rd_addr_next;
 reg [ADDR_WIDTH-1:0] b_rd_addr_reg, b_rd_addr_next;
-reg [ACC_WIDTH-1:0] c_reg, c_reg_next;
-reg c_wr_en_reg, c_wr_en_next;
-reg [ADDR_WIDTH-1:0] c_wr_addr_reg, c_wr_addr_next;
-reg [MKN_WIDTH-1:0] row, row_next;
-reg [MKN_WIDTH-1:0] col, col_next;
-reg [MKN_WIDTH-1:0] i, i_next;
+reg [ADDR_WIDTH-1:0] c_rw_addr_reg, c_rw_addr_next;
+reg [ACC_WIDTH-1:0] sum, sum_next;
 
 reg [MKN_WIDTH-1:0] x, x_next;
 reg [MKN_WIDTH-1:0] y, y_next;
+reg [MKN_WIDTH-1:0] l, l_next;
 
 reg [N_OUT_PLANE_WIDTH-1:0] c_im, c_im_next;
 reg [MISC_WIDTH-1:0] h_offset, h_offset_next;
@@ -66,8 +64,6 @@ reg [INOUT_WH_WIDTH-1:0] h_col, h_col_next;
 reg [INOUT_WH_WIDTH-1:0] w_col, w_col_next;
 reg signed [INOUT_WH_WIDTH-1:0] h_im, w_im;
 
-reg inside;
-
 always @(posedge clk, posedge reset)
 begin
     if (reset)
@@ -75,14 +71,12 @@ begin
             state <= idle;
             a_rd_addr_reg <= 0;
             b_rd_addr_reg <= 0;
-            c_reg <= 0;
-            c_wr_en_reg <= 0;
-            c_wr_addr_reg <= 0;
-            row <= 0;
-            col <= 0;
-            i <= 0;
+            c_rw_addr_reg <= 0;
+            sum <= 0;
+
             x <= 0;
             y <= 0;
+            l <= 0;
 
             c_im <= 0;
             h_offset <= 0;
@@ -96,14 +90,12 @@ begin
             state <= state_next;
             a_rd_addr_reg <= a_rd_addr_next;
             b_rd_addr_reg <= b_rd_addr_next;
-            c_reg <= c_reg_next;
-            c_wr_en_reg <= c_wr_en_next;
-            c_wr_addr_reg <= c_wr_addr_next;
-            row <= row_next;
-            col <= col_next;
-            i <= i_next;
+            c_rw_addr_reg <= c_rw_addr_next;
+            sum <= sum_next;
+
             x <= x_next;
             y <= y_next;
+            l <= l_next;
 
             c_im <= c_im_next;
             h_offset <= h_offset_next;
@@ -185,14 +177,12 @@ begin
     state_next = state;
     a_rd_addr_next = a_rd_addr_reg;
     b_rd_addr_next = b_rd_addr_reg;
-    c_reg_next = c_reg;
-    c_wr_en_next = 1'b0; // a tick
-    c_wr_addr_next = c_wr_addr_reg;
-    row_next = row;
-    col_next = col;
-    i_next = i;
+    c_rw_addr_next = c_rw_addr_reg;
+    sum_next = sum;
+
     x_next = x;
     y_next = y;
+    l_next = l;
 
     c_im_next = c_im;
     h_offset_next = h_offset;
@@ -201,25 +191,20 @@ begin
     w_col_next = w_col;
 
     // direct output signals
+    c_wr_en = 1'b0; // a tick
     done_tick = 1'b0;
-    inside = 1'b0;
+
     case (state)
         idle:
             begin
                 if (start_tick)
                     begin
                         state_next = loop;
-                        a_rd_addr_next = 0;
-                        b_rd_addr_next = 0;
-                        // No need to set these two
-                        // c_reg_next = 0;
-                        // c_wr_en_next = 1'b0;
-                        c_wr_addr_next = -1;
-                        row_next = 0;
-                        col_next = 0;
-                        i_next = 0;
+                        // No need to set a_rd_addr_next, ...
+
                         x_next = 0;
                         y_next = 0;
+                        l_next = 0;
 
                         c_im_next = 0;
                         h_offset_next = 0;
@@ -240,7 +225,8 @@ begin
                                             begin
                                                 if (w_col == input_w - 1)
                                                     begin
-                                                        //state_next = done;
+                                                        // TODO: last
+                                                        state_next = done;
                                                     end
                                                 else
                                                     begin
@@ -295,55 +281,29 @@ begin
                 w_im = w_col * stride_w - pad_w + w_offset * dilation_w;
                 if (h_im >= 0 && h_im < output_h && w_im >= 0 && w_im < output_w)
                     begin
-                        inside = 1'b1;
-                        /*
                         state_next = macc;
-
-                        a_rd_addr_next = row_next * k + i_next;
-                        b_rd_addr_next = col_next * k + i_next;
-                        */
+                        a_rd_addr_next = x;
+                        b_rd_addr_next = y;
+                        c_rw_addr_next = (c_im * output_h + h_im) * output_w + w_im;
+                        sum_next = 0;
+                        l_next = 0;
                     end
             end
         macc:
             begin
-                if (i == k - 1) // test this case first since when k == 1, i == 0
+                sum_next = sum + a * b;
+                if (l == k - 1)
                     begin
-                        if (i == 0)
-                            c_reg_next = a * b;
-                        else
-                            c_reg_next = c_reg + a * b;
-                        i_next = 0;
-                        // the next c_reg value should be written to the next address
-                        c_wr_en_next = 1'b1;
-                        c_wr_addr_next = c_wr_addr_reg + 1;
-
-                        if (row == m - 1)
-                            if (col == n - 1)
-                                state_next = done;
-                            else
-                                col_next = col + 1;
-                        else
-                            if (col == n - 1)
-                                begin
-                                    row_next = row + 1;
-                                    col_next = 0;
-                                end
-                            else
-                                col_next = col + 1;
-                    end
-                else if (i == 0)
-                    begin
-                        c_reg_next = a * b;
-                        i_next = i + 1;
+                        state_next = loop;
+                        c_out = c + sum_next;
+                        c_wr_en = 1'b1;
                     end
                 else
                     begin
-                        c_reg_next = c_reg + a * b;
-                        i_next = i + 1;
+                        a_rd_addr_next = l_next * m + x;
+                        b_rd_addr_next = l_next * n + y;
+                        l_next = l + 1;
                     end
-
-                a_rd_addr_next = row_next * k + i_next;
-                b_rd_addr_next = col_next * k + i_next;
             end
         done:
             begin
@@ -358,8 +318,6 @@ end
 // be delayed a cycle.
 assign a_rd_addr = a_rd_addr_next;
 assign b_rd_addr = b_rd_addr_next;
-assign c = c_reg;
-assign c_wr_en = c_wr_en_reg;
-assign c_wr_addr = c_wr_addr_reg;
+assign c_rw_addr = c_rw_addr_next;
 
 endmodule
