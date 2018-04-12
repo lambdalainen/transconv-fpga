@@ -32,7 +32,7 @@ module sparse_gemm
     input wire [MISC_WIDTH-1:0] dilation_w,
     input wire [DATA_WIDTH-1:0] a,
     input wire [DATA_WIDTH-1:0] b,
-    input wire [DATA_WIDTH-1:0] c,
+    input wire [ACC_WIDTH-1:0] c, // be careful with the width here
     output wire [ADDR_WIDTH-1:0] a_rd_addr,
     output wire [ADDR_WIDTH-1:0] b_rd_addr,
     output wire [ADDR_WIDTH-1:0] c_rw_addr,
