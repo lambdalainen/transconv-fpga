@@ -302,8 +302,8 @@ begin
                         c_rw_addr_next = (c_im * output_h + h_im) * output_w + w_im;
                         sum_next = 0;
                         // it is important to save i and j's values here use the saved value for macc
-                        i_saved = i;
-                        j_saved = j;
+                        i_saved_next = i;
+                        j_saved_next = j;
                         l_next = 0;
                     end
                 else if (last_next)
