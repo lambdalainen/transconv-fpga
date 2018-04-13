@@ -57,15 +57,17 @@ reg [MKN_WIDTH-1:0] i, i_next;
 reg [MKN_WIDTH-1:0] j, j_next;
 reg [MKN_WIDTH-1:0] l, l_next;
 
+// always @* is combinational and cannot hold state, therefore we have to use *_next
+reg [MKN_WIDTH-1:0] i_saved, i_saved_next;
+reg [MKN_WIDTH-1:0] j_saved, j_saved_next;
+reg last, last_next;
+
+
 reg [N_OUT_PLANE_WIDTH-1:0] c_im, c_im_next;
 reg [MISC_WIDTH-1:0] h_offset, h_offset_next;
 reg [MISC_WIDTH-1:0] w_offset, w_offset_next;
 reg [INOUT_WH_WIDTH-1:0] h_col, h_col_next;
 reg [INOUT_WH_WIDTH-1:0] w_col, w_col_next;
-
-reg [MKN_WIDTH-1:0] i_saved, j_saved;
-reg signed [INOUT_WH_WIDTH-1:0] h_im, w_im;
-reg last;
 
 always @(posedge clk, posedge reset)
 begin
@@ -80,6 +82,9 @@ begin
             i <= 0;
             j <= 0;
             l <= 0;
+            i_saved <= 0;
+            j_saved <= 0;
+            last <= 0;
 
             c_im <= 0;
             h_offset <= 0;
@@ -99,6 +104,9 @@ begin
             i <= i_next;
             j <= j_next;
             l <= l_next;
+            i_saved <= i_saved_next;
+            j_saved <= j_saved_next;
+            last <= last_next;
 
             c_im <= c_im_next;
             h_offset <= h_offset_next;
@@ -186,6 +194,9 @@ begin
     i_next = i;
     j_next = j;
     l_next = l;
+    i_saved_next = i_saved;
+    j_saved_next = j_saved;
+    last_next = last;
 
     c_im_next = c_im;
     h_offset_next = h_offset;
@@ -215,7 +226,7 @@ begin
                         h_col_next = 0;
                         w_col_next = 0;
 
-                        last = 1'b0;
+                        last_next = 1'b0;
                     end
             end
         loop:
@@ -230,7 +241,7 @@ begin
                                             begin
                                                 if (w_col == input_w - 1)
                                                     begin
-                                                        last = 1'b1;
+                                                        last_next = 1'b1;
                                                     end
                                                 else
                                                     begin
@@ -295,7 +306,7 @@ begin
                         j_saved = j;
                         l_next = 0;
                     end
-                else if (last)
+                else if (last_next)
                     state_next = done;
             end
         macc:
