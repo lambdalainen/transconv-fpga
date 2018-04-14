@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wave_config>
+   <wave_state>
+   </wave_state>
+   <db_ref_list>
+      <db_ref path="testbench_behav.wdb" id="1">
+         <top_modules>
+            <top_module name="glbl" />
+            <top_module name="testbench" />
+         </top_modules>
+      </db_ref>
+   </db_ref_list>
+   <zoom_setting>
+      <ZoomStartTime time="1044000000fs"></ZoomStartTime>
+      <ZoomEndTime time="1104000001fs"></ZoomEndTime>
+      <Cursor1Time time="2000000000fs"></Cursor1Time>
+   </zoom_setting>
+   <column_width_setting>
+      <NameColumnWidth column_width="175"></NameColumnWidth>
+      <ValueColumnWidth column_width="138"></ValueColumnWidth>
+   </column_width_setting>
+   <WVObjectSize size="22" />
+   <wvobject type="logic" fp_name="/testbench/clk">
+      <obj_property name="ElementShortName">clk</obj_property>
+      <obj_property name="ObjectShortName">clk</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/testbench/reset">
+      <obj_property name="ElementShortName">reset</obj_property>
+      <obj_property name="ObjectShortName">reset</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/testbench/addr_a">
+      <obj_property name="ElementShortName">addr_a[15:0]</obj_property>
+      <obj_property name="ObjectShortName">addr_a[15:0]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/testbench/addr_b">
+      <obj_property name="ElementShortName">addr_b[15:0]</obj_property>
+      <obj_property name="ObjectShortName">addr_b[15:0]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/testbench/addr_c">
+      <obj_property name="ElementShortName">addr_c[15:0]</obj_property>
+      <obj_property name="ObjectShortName">addr_c[15:0]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/testbench/a">
+      <obj_property name="ElementShortName">a[7:0]</obj_property>
+      <obj_property name="ObjectShortName">a[7:0]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/testbench/b">
+      <obj_property name="ElementShortName">b[7:0]</obj_property>
+      <obj_property name="ObjectShortName">b[7:0]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/testbench/c">
+      <obj_property name="ElementShortName">c[31:0]</obj_property>
+      <obj_property name="ObjectShortName">c[31:0]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/testbench/cw">
+      <obj_property name="ElementShortName">cw[31:0]</obj_property>
+      <obj_property name="ObjectShortName">cw[31:0]</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/testbench/we">
+      <obj_property name="ElementShortName">we</obj_property>
+      <obj_property name="ObjectShortName">we</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/testbench/mm_unit/acc">
+      <obj_property name="ElementShortName">acc[47:0]</obj_property>
+      <obj_property name="ObjectShortName">acc[47:0]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/testbench/mm_unit/i">
+      <obj_property name="ElementShortName">i[13:0]</obj_property>
+      <obj_property name="ObjectShortName">i[13:0]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/testbench/mm_unit/j">
+      <obj_property name="ElementShortName">j[13:0]</obj_property>
+      <obj_property name="ObjectShortName">j[13:0]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/testbench/mm_unit/h_im">
+      <obj_property name="ElementShortName">h_im[6:0]</obj_property>
+      <obj_property name="ObjectShortName">h_im[6:0]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/testbench/mm_unit/w_im">
+      <obj_property name="ElementShortName">w_im[6:0]</obj_property>
+      <obj_property name="ObjectShortName">w_im[6:0]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/testbench/mm_unit/state">
+      <obj_property name="ElementShortName">state[2:0]</obj_property>
+      <obj_property name="ObjectShortName">state[2:0]</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/testbench/mm_unit/macc_reset">
+      <obj_property name="ElementShortName">macc_reset</obj_property>
+      <obj_property name="ObjectShortName">macc_reset</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/testbench/mm_unit/macc_ce">
+      <obj_property name="ElementShortName">macc_ce</obj_property>
+      <obj_property name="ObjectShortName">macc_ce</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/testbench/btn_tick">
+      <obj_property name="ElementShortName">btn_tick</obj_property>
+      <obj_property name="ObjectShortName">btn_tick</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/testbench/done_tick">
+      <obj_property name="ElementShortName">done_tick</obj_property>
+      <obj_property name="ObjectShortName">done_tick</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/testbench/addr_result">
+      <obj_property name="ElementShortName">addr_result[15:0]</obj_property>
+      <obj_property name="ObjectShortName">addr_result[15:0]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/testbench/result">
+      <obj_property name="ElementShortName">result[31:0]</obj_property>
+      <obj_property name="ObjectShortName">result[31:0]</obj_property>
+   </wvobject>
+</wave_config>
