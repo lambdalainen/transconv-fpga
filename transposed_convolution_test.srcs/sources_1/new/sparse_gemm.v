@@ -47,7 +47,8 @@ localparam [2:0]
     loop = 3'b001,
     pick = 3'b010,
     macc = 3'b011,
-    done = 3'b100;
+    save = 3'b100,
+    done = 3'b101;
 
 reg [2:0] state, state_next;
 reg [ADDR_WIDTH-1:0] a_rd_addr_reg, a_rd_addr_next;
@@ -320,7 +321,6 @@ begin
                         // c_rw_addr_p depends on c_im, h_im and w_im, which are computed for the previous loop cycle
                         c_rw_addr_next = c_rw_addr_p[ADDR_WIDTH-1:0];
                         l_next = 1; // set to 1 so that in the next cycle, a_rd_addr_next can be computed
-                        macc_ce = 1'b1;
                     end
                 else if (last_next)
                     state_next = done;
@@ -329,15 +329,11 @@ begin
             end
         macc: // 3
             begin
+                macc_ce = 1'b1;
+
                 if (l == k) // l started with 1 instead of 0
                     begin
-                        if (last)
-                            state_next = done;
-                        else
-                            state_next = loop;
-                        c_out = c + acc[ACC_WIDTH-1:0];
-                        c_wr_en = 1'b1;
-                        macc_reset = 1'b1;
+                        state_next = save;
                     end
                 else
                     begin
@@ -345,8 +341,17 @@ begin
                         // these addresses are ready in this cycle since we used l_next in the previous cycle as input to DSP48
                         a_rd_addr_next = a_rd_addr_p[ADDR_WIDTH-1:0];
                         b_rd_addr_next = b_rd_addr_p[ADDR_WIDTH-1:0];
-                        macc_ce = 1'b1;
                     end
+            end
+        save:
+            begin
+                if (last)
+                    state_next = done;
+                else
+                    state_next = loop;
+                c_out = c + acc[ACC_WIDTH-1:0];
+                c_wr_en = 1'b1;
+                macc_reset = 1'b1;
             end
         done: // 4
             begin
